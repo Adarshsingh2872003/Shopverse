@@ -13,25 +13,166 @@ export default function Checkout() {
 
   const place = async (e) => {
     e.preventDefault();
-    setBusy(true); setError('');
+    setBusy(true);
+    setError('');
     try {
-      await api('/orders', { method: 'POST', body: { shipping: f, items: items.map((i) => ({ productId: i._id, qty: i.qty })) } });
+      await api('/orders', {
+        method: 'POST',
+        body: { shipping: f, items: items.map((i) => ({ productId: i._id, qty: i.qty })) },
+      });
       clear();
       nav('/orders');
-    } catch (err) { setError(err.message); setBusy(false); }
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
+    }
   };
 
-  if (!items.length) return <p className="empty">Your cart is empty.</p>;
+  if (!items.length) return (
+    <div className="empty-state">
+      <div className="empty-icon">🛒</div>
+      <h3>Your cart is empty</h3>
+      <p>Add some products before checking out.</p>
+    </div>
+  );
+
   return (
-    <form className="stack narrow" onSubmit={place}>
-      <h1>Delivery details</h1>
-      <input required placeholder="Address" value={f.address} onChange={on('address')} />
-      <input required placeholder="City" value={f.city} onChange={on('city')} />
-      <input required placeholder="PIN code" pattern="[0-9]{6}" value={f.pincode} onChange={on('pincode')} />
-      <input required placeholder="Phone" pattern="[0-9]{10}" value={f.phone} onChange={on('phone')} />
-      <p className="muted">Payment: cash on delivery. (Add Razorpay or Stripe in <code>routes/orders.js</code>.)</p>
-      {error && <p className="error">{error}</p>}
-      <button className="btn" disabled={busy}>{busy ? 'Placing order…' : `Place order · ${rupees(total)}`}</button>
-    </form>
+    <>
+      <h1 style={{ marginBottom: '1.75rem' }}>Checkout</h1>
+
+      <form id="checkout-form" className="checkout-grid" onSubmit={place} noValidate>
+        {/* ── Left: Delivery + Payment ── */}
+        <div>
+          {/* Delivery section */}
+          <div className="checkout-section">
+            <h2>
+              <span className="section-icon" aria-hidden="true">🚚</span>
+              Delivery details
+            </h2>
+            <div className="form-grid">
+              <div className="input-group full">
+                <label className="input-label" htmlFor="checkout-address">Street address</label>
+                <input
+                  id="checkout-address"
+                  className="input-field"
+                  required
+                  placeholder="123, MG Road, Apartment 4B"
+                  value={f.address}
+                  onChange={on('address')}
+                  autoComplete="street-address"
+                />
+              </div>
+              <div className="input-group">
+                <label className="input-label" htmlFor="checkout-city">City</label>
+                <input
+                  id="checkout-city"
+                  className="input-field"
+                  required
+                  placeholder="Mumbai"
+                  value={f.city}
+                  onChange={on('city')}
+                  autoComplete="address-level2"
+                />
+              </div>
+              <div className="input-group">
+                <label className="input-label" htmlFor="checkout-pincode">PIN code</label>
+                <input
+                  id="checkout-pincode"
+                  className="input-field"
+                  required
+                  placeholder="400001"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={f.pincode}
+                  onChange={on('pincode')}
+                  autoComplete="postal-code"
+                />
+              </div>
+              <div className="input-group full">
+                <label className="input-label" htmlFor="checkout-phone">Phone number</label>
+                <input
+                  id="checkout-phone"
+                  className="input-field"
+                  required
+                  placeholder="9876543210"
+                  pattern="[0-9]{10}"
+                  maxLength={10}
+                  value={f.phone}
+                  onChange={on('phone')}
+                  autoComplete="tel"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Payment section */}
+          <div className="checkout-section">
+            <h2>
+              <span className="section-icon" aria-hidden="true">💵</span>
+              Payment method
+            </h2>
+            <div className="cod-note" role="note">
+              <span className="cod-icon" aria-hidden="true">✅</span>
+              <span>
+                <strong>Cash on Delivery</strong> — Pay when your order arrives at your door. No online payment required.
+              </span>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-error" role="alert" aria-live="polite" style={{ marginBottom: '1rem' }}>
+              ⚠️ {error}
+            </p>
+          )}
+        </div>
+
+        {/* ── Right: Order Summary ── */}
+        <aside className="cart-summary" aria-label="Order summary">
+          <h3>Order Summary</h3>
+
+          {/* Item list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.6rem', marginBottom: '1rem' }}>
+            {items.map((i) => (
+              <div key={i._id} className="summary-row" style={{ fontSize: '.88rem' }}>
+                <span style={{ color: 'var(--ink)' }}>
+                  {i.name}
+                  <span className="text-muted" style={{ marginLeft: '.4rem' }}>×{i.qty}</span>
+                </span>
+                <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{rupees(i.price * i.qty)}</span>
+              </div>
+            ))}
+          </div>
+
+          <hr className="divider" />
+
+          <div className="summary-row">
+            <span>Subtotal</span>
+            <span>{rupees(total)}</span>
+          </div>
+          <div className="summary-row">
+            <span>Delivery</span>
+            <span style={{ color: 'var(--ok)', fontWeight: 600 }}>Free</span>
+          </div>
+          <div className="summary-row total">
+            <span>Total</span>
+            <span>{rupees(total)}</span>
+          </div>
+
+          <button
+            id="place-order-btn"
+            type="submit"
+            className="btn"
+            disabled={busy}
+            style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }}
+          >
+            {busy ? 'Placing order…' : `Place order · ${rupees(total)}`}
+          </button>
+
+          <p className="text-muted text-sm" style={{ textAlign: 'center', marginTop: '.75rem' }}>
+            🔒 Secured checkout · Cash on delivery
+          </p>
+        </aside>
+      </form>
+    </>
   );
 }

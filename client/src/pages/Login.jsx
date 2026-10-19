@@ -8,25 +8,121 @@ export default function Login() {
   const [mode, setMode] = useState('login');
   const [f, setF] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
   const on = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   const submit = async (e) => {
     e.preventDefault();
-    try { await (mode === 'login' ? login(f) : register(f)); nav('/'); }
-    catch (err) { setError(err.message); }
+    setBusy(true);
+    setError('');
+    try {
+      await (mode === 'login' ? login(f) : register(f));
+      nav('/');
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
+    }
+  };
+
+  const switchMode = () => {
+    setMode(mode === 'login' ? 'register' : 'login');
+    setError('');
+    setF({ name: '', email: '', password: '' });
   };
 
   return (
-    <form className="stack narrow" onSubmit={submit}>
-      <h1>{mode === 'login' ? 'Sign in' : 'Create your account'}</h1>
-      {mode === 'register' && <input required placeholder="Full name" value={f.name} onChange={on('name')} />}
-      <input required type="email" placeholder="Email" value={f.email} onChange={on('email')} />
-      <input required type="password" minLength="6" placeholder="Password (6+ characters)" value={f.password} onChange={on('password')} />
-      {error && <p className="error">{error}</p>}
-      <button className="btn">{mode === 'login' ? 'Sign in' : 'Create account'}</button>
-      <button type="button" className="link" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}>
-        {mode === 'login' ? 'New here? Create an account' : 'Have an account? Sign in'}
-      </button>
-    </form>
+    <div className="auth-wrap">
+      <div className="auth-card">
+        {/* Logo */}
+        <div className="auth-logo">
+          <div className="logo-icon">⚡</div>
+          <h1>{mode === 'login' ? 'Welcome back' : 'Create account'}</h1>
+          <p className="auth-subtitle">
+            {mode === 'login'
+              ? 'Sign in to your ShopVerse account'
+              : 'Join ShopVerse and start shopping'}
+          </p>
+        </div>
+
+        {/* Form */}
+        <form id="auth-form" className="auth-form" onSubmit={submit} noValidate>
+          {mode === 'register' && (
+            <div className="input-group">
+              <label className="input-label" htmlFor="name-input">Full name</label>
+              <input
+                id="name-input"
+                className="input-field"
+                required
+                placeholder="Jane Doe"
+                value={f.name}
+                onChange={on('name')}
+                autoComplete="name"
+              />
+            </div>
+          )}
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="email-input">Email address</label>
+            <input
+              id="email-input"
+              className="input-field"
+              required
+              type="email"
+              placeholder="you@example.com"
+              value={f.email}
+              onChange={on('email')}
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="password-input">Password</label>
+            <input
+              id="password-input"
+              className="input-field"
+              required
+              type="password"
+              minLength="6"
+              placeholder={mode === 'register' ? 'At least 6 characters' : '••••••••'}
+              value={f.password}
+              onChange={on('password')}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            />
+          </div>
+
+          {error && (
+            <p className="text-error" role="alert" aria-live="polite">
+              ⚠️ {error}
+            </p>
+          )}
+
+          <button
+            id="auth-submit-btn"
+            className="btn"
+            disabled={busy}
+            style={{ width: '100%', justifyContent: 'center', marginTop: '.25rem' }}
+          >
+            {busy
+              ? (mode === 'login' ? 'Signing in…' : 'Creating account…')
+              : (mode === 'login' ? 'Sign in →' : 'Create account →')}
+          </button>
+        </form>
+
+        <hr className="divider" />
+
+        <p className="auth-toggle">
+          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+          <button
+            id="auth-mode-toggle"
+            className="link-btn"
+            type="button"
+            onClick={switchMode}
+          >
+            {mode === 'login' ? 'Create one' : 'Sign in'}
+          </button>
+        </p>
+      </div>
+    </div>
   );
 }
