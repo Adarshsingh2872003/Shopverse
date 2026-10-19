@@ -1,7 +1,8 @@
-// Thin fetch wrapper: adds the JWT and turns API errors into thrown Errors.
+const API = import.meta.env.VITE_API_URL || '/api';
+
 export async function api(path, { method = 'GET', body } = {}) {
   const token = localStorage.getItem('token');
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API}${path}`, {
     method,
     headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
     body: body ? JSON.stringify(body) : undefined,
