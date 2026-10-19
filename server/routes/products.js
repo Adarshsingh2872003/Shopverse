@@ -9,7 +9,8 @@ router.get('/', async (req, res) => {
   const { search, category, sort = 'newest', page = 1, limit = 12 } = req.query;
   const filter = {};
   if (search) filter.name = { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
-  if (category && category !== 'all') filter.category = category;
+  if (category && category !== 'all')
+    filter.category = { $regex: `^${category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' };
   const sorts = { price_asc: { price: 1 }, price_desc: { price: -1 }, newest: { createdAt: -1 } };
   const [products, total, categories] = await Promise.all([
     Product.find(filter).sort(sorts[sort] || sorts.newest).skip((page - 1) * limit).limit(+limit),
