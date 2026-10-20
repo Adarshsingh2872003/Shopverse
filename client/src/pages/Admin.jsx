@@ -7,6 +7,7 @@ export default function Admin() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders]     = useState([]);
   const [f, setF]               = useState(blank);
+  const [editingId, setEditingId] = useState(null);
   const [error, setError]       = useState('');
   const [tab, setTab]           = useState('products'); // 'products' | 'orders'
   const [productTotal, setProductTotal] = useState(0);
@@ -30,17 +31,44 @@ export default function Admin() {
     e.preventDefault();
     setError('');
     try {
-      await api('/products', { method: 'POST', body: { ...f, price: +f.price, stock: +f.stock } });
+      const body = { ...f, price: +f.price, stock: +f.stock };
+      if (editingId) {
+        await api(`/products/${editingId}`, { method: 'PUT', body });
+      } else {
+        await api('/products', { method: 'POST', body });
+      }
       setF(blank);
-      load();
+      setEditingId(null);
+      await load();
     } catch (err) { setError(err.message); }
+  };
+
+  const edit = (product) => {
+    setF({
+      name: product.name,
+      description: product.description || '',
+      price: String(product.price),
+      category: product.category,
+      image: product.image || '',
+      stock: String(product.stock),
+    });
+    setEditingId(product._id);
+    setError('');
+    document.getElementById('add-product-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const cancelEdit = () => {
+    setF(blank);
+    setEditingId(null);
+    setError('');
   };
 
   const del = async (id) => {
     if (!confirm('Delete this product? This cannot be undone.')) return;
     try {
       await api(`/products/${id}`, { method: 'DELETE' });
-      load();
+      if (editingId === id) cancelEdit();
+      await load();
     } catch (err) { setError(err.message); }
   };
 
@@ -98,8 +126,8 @@ export default function Admin() {
         <>
           {/* Add product form */}
           <div className="add-product-form">
-            <h2>➕ Add new product</h2>
-            <form id="add-product-form" onSubmit={create} noValidate>
+            <h2>{editingId ? '✎ Update product' : '➕ Add new product'}</h2>
+            <form id="add-product-form" onSubmit={create}>
               <div className="admin-form-grid">
                 <div className="input-group">
                   <label className="input-label" htmlFor="p-name">Product name</label>
@@ -111,11 +139,11 @@ export default function Admin() {
                 </div>
                 <div className="input-group">
                   <label className="input-label" htmlFor="p-price">Price (₹)</label>
-                  <input id="p-price" className="input-field" required type="number" min="0" placeholder="1999" value={f.price} onChange={on('price')} />
+                  <input id="p-price" className="input-field" required type="number" min="0" step="any" placeholder="1999" value={f.price} onChange={on('price')} />
                 </div>
                 <div className="input-group">
                   <label className="input-label" htmlFor="p-stock">Stock qty</label>
-                  <input id="p-stock" className="input-field" required type="number" min="0" placeholder="50" value={f.stock} onChange={on('stock')} />
+                  <input id="p-stock" className="input-field" required type="number" min="0" step="1" placeholder="50" value={f.stock} onChange={on('stock')} />
                 </div>
                 <div className="input-group" style={{ gridColumn: '1 / -1' }}>
                   <label className="input-label" htmlFor="p-image">Image URL</label>
@@ -127,7 +155,16 @@ export default function Admin() {
                 </div>
               </div>
               {error && <p className="text-error" role="alert" style={{ marginBottom: '.75rem' }}>⚠️ {error}</p>}
-              <button id="add-product-btn" type="submit" className="btn">Add product</button>
+              <div style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap' }}>
+                <button id="add-product-btn" type="submit" className="btn">
+                  {editingId ? 'Save changes' : 'Add product'}
+                </button>
+                {editingId && (
+                  <button type="button" className="btn-danger" onClick={cancelEdit}>
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -141,7 +178,7 @@ export default function Admin() {
                     <th>Category</th>
                     <th>Price</th>
                     <th>Stock</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -168,14 +205,24 @@ export default function Admin() {
                         </span>
                       </td>
                       <td>
-                        <button
-                          id={`delete-${p._id}`}
-                          className="btn-danger"
-                          onClick={() => del(p._id)}
-                          aria-label={`Delete ${p.name}`}
-                        >
-                          Delete
-                        </button>
+                        <div style={{ display: 'flex', gap: '.5rem' }}>
+                          <button
+                            id={`edit-${p._id}`}
+                            className="btn"
+                            onClick={() => edit(p)}
+                            aria-label={`Edit ${p.name}`}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            id={`delete-${p._id}`}
+                            className="btn-danger"
+                            onClick={() => del(p._id)}
+                            aria-label={`Delete ${p.name}`}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

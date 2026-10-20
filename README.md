@@ -6,7 +6,7 @@
 - Browse products with search, category filter, sort and pagination
 - Product page, cart (saved in localStorage), checkout, order history
 - JWT auth (register / login), bcrypt-hashed passwords
-- Admin area: add/delete products, view all orders, update order status
+- Admin area: add/edit/delete products, view all orders, update order status
 - Customer and admin dashboards with live order/store summaries
 - Razorpay online checkout (UPI, cards, netbanking) with server-side signature and payment verification; cash on delivery remains available
 - Server re-prices every order from the database and checks stock (client can't tamper with totals)
@@ -22,6 +22,8 @@ npm run seed             # add 37 sample products + admin without deleting exist
 npm run dev              # API on :5000, client on :5173
 ```
 Open http://localhost:5173
+
+Use **Sign in as → Admin** to sign in to the admin dashboard. The seeded admin account is `admin@shop.com` / `admin123` (only when newly created by the seed script). Admins can add products or edit their name, description, price, category, stock, and image URL; saved changes are served by the same product API used by the storefront.
 
 ## Structure
 ```

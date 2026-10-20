@@ -26,8 +26,18 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', protect, admin, async (req, res) => res.status(201).json(await Product.create(req.body)));
-router.put('/:id', protect, admin, async (req, res) =>
-  res.json(await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })));
+router.put('/:id', protect, admin, async (req, res) => {
+  const editableFields = ['name', 'description', 'price', 'category', 'image', 'stock'];
+  const updates = Object.fromEntries(
+    Object.entries(req.body).filter(([field]) => editableFields.includes(field)),
+  );
+  const product = await Product.findByIdAndUpdate(req.params.id, updates, {
+    new: true,
+    runValidators: true,
+  });
+  if (!product) return res.status(404).json({ message: 'Product not found.' });
+  res.json(product);
+});
 router.delete('/:id', protect, admin, async (req, res) => {
   await Product.findByIdAndDelete(req.params.id);
   res.json({ message: 'Product deleted.' });

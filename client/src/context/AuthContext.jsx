@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
     const { token, user } = await api(path, { method: 'POST', body });
     localStorage.setItem('token', token);
     setUser(user);
+    return user;
   };
   const login = (b) => authenticate('/auth/login', b);
   const register = (b) => authenticate('/auth/register', b);
