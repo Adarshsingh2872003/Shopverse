@@ -9,11 +9,20 @@ export default function Admin() {
   const [f, setF]               = useState(blank);
   const [error, setError]       = useState('');
   const [tab, setTab]           = useState('products'); // 'products' | 'orders'
+  const [productTotal, setProductTotal] = useState(0);
+  const [loadingError, setLoadingError] = useState('');
   const on = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
-  const load = () => {
-    api('/products?limit=100').then((d) => setProducts(d.products)).catch(() => {});
-    api('/orders').then(setOrders).catch(() => {});
+  const load = async () => {
+    setLoadingError('');
+    try {
+      const [productData, orderData] = await Promise.all([api('/products?limit=100'), api('/orders')]);
+      setProducts(productData.products);
+      setProductTotal(productData.total);
+      setOrders(orderData);
+    } catch (err) {
+      setLoadingError(err.message);
+    }
   };
   useEffect(load, []);
 
@@ -29,21 +38,41 @@ export default function Admin() {
 
   const del = async (id) => {
     if (!confirm('Delete this product? This cannot be undone.')) return;
-    await api(`/products/${id}`, { method: 'DELETE' });
-    load();
+    try {
+      await api(`/products/${id}`, { method: 'DELETE' });
+      load();
+    } catch (err) { setError(err.message); }
   };
 
   const setStatus = async (id, status) => {
-    await api(`/orders/${id}/status`, { method: 'PUT', body: { status } });
-    load();
+    try {
+      await api(`/orders/${id}/status`, { method: 'PUT', body: { status } });
+      load();
+    } catch (err) { setLoadingError(err.message); }
   };
+
+  const revenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const awaiting = orders.filter((order) => order.status === 'placed'
+    && (order.paymentMethod === 'cod' || order.paymentStatus === 'paid')).length;
 
   return (
     <div className="admin-wrap">
-      <h1>Store Manager</h1>
+      <div className="dashboard-heading">
+        <div><p className="eyebrow">Store overview</p><h1>Admin dashboard</h1><p className="text-muted">A clear view of your store, all in one place.</p></div>
+        <span className="admin-live"><span /> Store live</span>
+      </div>
+
+      {loadingError && <p className="text-error" role="alert" style={{ marginBottom: '1rem' }}>Could not load store data: {loadingError}</p>}
+
+      <section className="dashboard-stats admin-stats" aria-label="Store summary">
+        <article className="dashboard-stat"><span className="dashboard-stat-icon">▦</span><span className="dashboard-stat-label">Products</span><strong>{productTotal}</strong><span className="text-muted text-sm">Listed in your store</span></article>
+        <article className="dashboard-stat"><span className="dashboard-stat-icon">▤</span><span className="dashboard-stat-label">Total orders</span><strong>{orders.length}</strong><span className="text-muted text-sm">All customer orders</span></article>
+        <article className="dashboard-stat"><span className="dashboard-stat-icon">₹</span><span className="dashboard-stat-label">Order value</span><strong>{rupees(revenue)}</strong><span className="text-muted text-sm">Across all orders</span></article>
+        <article className="dashboard-stat"><span className="dashboard-stat-icon">◷</span><span className="dashboard-stat-label">To fulfill</span><strong>{awaiting}</strong><span className="text-muted text-sm">Placed, awaiting shipment</span></article>
+      </section>
 
       {/* ── Tab bar ── */}
-      <div className="chips-wrap" style={{ marginBottom: '1.75rem' }} role="tablist">
+      <div className="dashboard-tabs" style={{ marginBottom: '1.5rem' }} role="tablist" aria-label="Store management">
         <button
           id="tab-products"
           role="tab"
@@ -51,7 +80,7 @@ export default function Admin() {
           className={`chip${tab === 'products' ? ' active' : ''}`}
           onClick={() => setTab('products')}
         >
-          📦 Products ({products.length})
+          Products <span>{productTotal}</span>
         </button>
         <button
           id="tab-orders"
@@ -60,7 +89,7 @@ export default function Admin() {
           className={`chip${tab === 'orders' ? ' active' : ''}`}
           onClick={() => setTab('orders')}
         >
-          🧾 Orders ({orders.length})
+          Orders <span>{orders.length}</span>
         </button>
       </div>
 
@@ -184,12 +213,12 @@ export default function Admin() {
                   className="sort-select"
                   value={o.status}
                   onChange={(e) => setStatus(o._id, e.target.value)}
+                  disabled={o.paymentMethod === 'razorpay' && o.paymentStatus !== 'paid'}
                   aria-label={`Update status for order #${o._id.slice(-8)}`}
                 >
-                  <option value="pending">🕐 Pending</option>
-                  <option value="processing">⚙️ Processing</option>
-                  <option value="shipped">🚚 Shipped</option>
-                  <option value="delivered">✅ Delivered</option>
+                  <option value="placed">◷ Placed</option>
+                  <option value="shipped">↗ Shipped</option>
+                  <option value="delivered">✓ Delivered</option>
                 </select>
               </div>
               <div className="order-items-list">
@@ -203,7 +232,7 @@ export default function Admin() {
               </div>
               <div className="order-card-foot">
                 <span className="text-muted text-sm">📞 {o.shipping?.phone}</span>
-                <span className="order-total">{rupees(o.total)}</span>
+                <span className="order-total">{rupees(o.total)} · {o.paymentMethod === 'razorpay' ? (o.paymentStatus === 'paid' ? 'Paid online' : 'Payment pending') : 'Cash on delivery'}</span>
               </div>
             </div>
           ))}

@@ -38,7 +38,7 @@ export default function Home() {
       {/* ── Hero ── */}
       <section className="hero" aria-label="Hero section">
         <div className="hero-content">
-          <p className="hero-eyebrow">Cash on delivery · Secure checkout</p>
+          <p className="hero-eyebrow">UPI, cards & cash on delivery</p>
           <h1 className="hero-headline">
             Discover Premium<br />Products.
           </h1>

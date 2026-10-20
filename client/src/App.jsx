@@ -8,6 +8,7 @@ import Checkout from './pages/Checkout.jsx';
 import Login from './pages/Login.jsx';
 import Orders from './pages/Orders.jsx';
 import Admin from './pages/Admin.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 
 function Guard({ admin, children }) {
   const { user, ready } = useAuth();
@@ -36,22 +37,22 @@ export default function App() {
             {user && (
               <li>
                 <NavLink
-                  to="/orders"
+                  to={user.isAdmin ? '/admin' : '/dashboard'}
                   className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                 >
-                  <span aria-hidden="true">📦</span>
-                  <span>Orders</span>
+                  <span aria-hidden="true">{user.isAdmin ? '▦' : '◫'}</span>
+                  <span>{user.isAdmin ? 'Dashboard' : 'My space'}</span>
                 </NavLink>
               </li>
             )}
-            {user?.isAdmin && (
+            {user && !user.isAdmin && (
               <li>
                 <NavLink
-                  to="/admin"
+                  to="/orders"
                   className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                 >
-                  <span aria-hidden="true">⚙️</span>
-                  <span>Manage</span>
+                  <span aria-hidden="true">▤</span>
+                  <span>Orders</span>
                 </NavLink>
               </li>
             )}
@@ -99,6 +100,7 @@ export default function App() {
           <Route path="/cart"    element={<Cart />} />
           <Route path="/login"   element={<Login />} />
           <Route path="/checkout" element={<Guard><Checkout /></Guard>} />
+          <Route path="/dashboard" element={<Guard><Dashboard /></Guard>} />
           <Route path="/orders"  element={<Guard><Orders /></Guard>} />
           <Route path="/admin"   element={<Guard admin><Admin /></Guard>} />
           <Route path="*"        element={

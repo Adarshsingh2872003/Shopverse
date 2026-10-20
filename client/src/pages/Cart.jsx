@@ -90,7 +90,7 @@ export default function Cart() {
 
           <div className="trust-row" aria-label="Trust features">
             <div className="trust-item">🚚 Free delivery on all orders</div>
-            <div className="trust-item">💵 Cash on delivery accepted</div>
+            <div className="trust-item">💳 Pay online or cash on delivery</div>
             <div className="trust-item">🔒 Secure checkout</div>
             <div className="trust-item">↩️ Easy 30-day returns</div>
           </div>

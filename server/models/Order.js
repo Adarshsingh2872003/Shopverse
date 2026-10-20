@@ -8,4 +8,7 @@ export default mongoose.model('Order', new mongoose.Schema({
   shipping: { address: String, city: String, pincode: String, phone: String },
   total: { type: Number, required: true },
   status: { type: String, enum: ['placed', 'shipped', 'delivered'], default: 'placed' },
+  paymentMethod: { type: String, enum: ['cod', 'razorpay'], default: 'cod' },
+  paymentStatus: { type: String, enum: ['pending', 'verifying', 'paid'], default: 'pending' },
+  razorpayOrderId: { type: String, unique: true, sparse: true },
 }, { timestamps: true }));

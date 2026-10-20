@@ -7,6 +7,8 @@
 - Product page, cart (saved in localStorage), checkout, order history
 - JWT auth (register / login), bcrypt-hashed passwords
 - Admin area: add/delete products, view all orders, update order status
+- Customer and admin dashboards with live order/store summaries
+- Razorpay online checkout (UPI, cards, netbanking) with server-side signature and payment verification; cash on delivery remains available
 - Server re-prices every order from the database and checks stock (client can't tamper with totals)
 
 ## Setup
@@ -15,6 +17,7 @@ Requires Node 18+ and MongoDB (local, or an Atlas connection string).
 ```bash
 npm run install:all      # installs root, server and client deps
 # edit server/.env if your MongoDB isn't at mongodb://127.0.0.1:27017
+# add Razorpay test/live keys to server/.env to enable online payments
 npm run seed             # sample products + admin (admin@shop.com / admin123)
 npm run dev              # API on :5000, client on :5173
 ```
@@ -35,6 +38,7 @@ client/  src/{pages,context} api.js App.jsx index.css
 | GET | /api/products/:id | public |
 | POST/PUT/DELETE | /api/products(/:id) | admin |
 | POST | /api/orders | user |
+| POST | /api/orders/razorpay/order, /api/orders/razorpay/verify | user |
 | GET | /api/orders/mine | user |
 | GET | /api/orders, PUT /api/orders/:id/status | admin |
 

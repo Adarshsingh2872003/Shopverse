@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, rupees } from '../api.js';
 
 const STATUS_ICON = {
-  pending:    '🕐',
-  processing: '⚙️',
+  placed:     '🕐',
   shipped:    '🚚',
   delivered:  '✅',
 };
@@ -69,7 +68,11 @@ export default function Orders() {
                 <span className="text-muted text-sm">
                   {o.shipping?.city && `📍 ${o.shipping.city}`}
                 </span>
-                <span className="text-muted text-sm">💵 Cash on delivery</span>
+                <span className="text-muted text-sm">
+                  {o.paymentMethod === 'razorpay'
+                    ? (o.paymentStatus === 'paid' ? '✓ Paid online' : '◷ Payment processing')
+                    : '₹ Cash on delivery'}
+                </span>
               </div>
               <span className="order-total">{rupees(o.total)}</span>
             </div>
