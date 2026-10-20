@@ -18,7 +18,7 @@ Requires Node 18+ and MongoDB (local, or an Atlas connection string).
 npm run install:all      # installs root, server and client deps
 # edit server/.env if your MongoDB isn't at mongodb://127.0.0.1:27017
 # add Razorpay test/live keys to server/.env to enable online payments
-npm run seed             # sample products + admin (admin@shop.com / admin123)
+npm run seed             # add 37 sample products + admin without deleting existing users/products
 npm run dev              # API on :5000, client on :5173
 ```
 Open http://localhost:5173
