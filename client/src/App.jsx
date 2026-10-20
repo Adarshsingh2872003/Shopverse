@@ -64,9 +64,9 @@ export default function App() {
                   aria-label={`Sign out of ${user.name.split(' ')[0]}'s account`}
                 >
                   <span aria-hidden="true">👤</span>
-                  {user.name.split(' ')[0]}
-                  <span style={{ opacity: .5 }}>·</span>
-                  Sign out
+                  <span className="sign-out-name">{user.name.split(' ')[0]}</span>
+                  <span className="sign-out-separator" style={{ opacity: .5 }}>·</span>
+                  <span className="sign-out-label">Sign out</span>
                 </button>
               </li>
             ) : (
