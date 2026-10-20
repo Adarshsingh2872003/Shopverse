@@ -17,13 +17,14 @@ Requires Node 18+ and MongoDB (local, or an Atlas connection string).
 ```bash
 npm run install:all      # installs root, server and client deps
 # edit server/.env if your MongoDB isn't at mongodb://127.0.0.1:27017
+# set ADMIN_REGISTRATION_KEY in server/.env to a long, private value before creating admin accounts
 # add Razorpay test/live keys to server/.env to enable online payments
 npm run seed             # add 37 sample products + admin without deleting existing users/products
 npm run dev              # API on :5000, client on :5173
 ```
 Open http://localhost:5173
 
-Use **Sign in as → Admin** to sign in to the admin dashboard. The seeded admin account is `admin@shop.com` / `admin123` (only when newly created by the seed script). Admins can add products or edit their name, description, price, category, stock, and image URL; saved changes are served by the same product API used by the storefront.
+Choose **User** or **Admin** when creating an account. Admin registration requires the `ADMIN_REGISTRATION_KEY` configured in `server/.env`; keep this key private. Choose the matching account type when signing in. The seeded admin account is `admin@shop.com` / `admin123` (only when newly created by the seed script). Admins can add products or edit their name, description, price, category, stock, and image URL; saved changes are served by the same product API used by the storefront.
 
 ## Structure
 ```

@@ -7,7 +7,7 @@ export default function Login() {
   const nav = useNavigate();
   const [mode, setMode] = useState('login');
   const [accountType, setAccountType] = useState('user');
-  const [f, setF] = useState({ name: '', email: '', password: '' });
+  const [f, setF] = useState({ name: '', email: '', password: '', adminRegistrationKey: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -20,7 +20,7 @@ export default function Login() {
     try {
       const user = mode === 'login'
         ? await login({ ...f, accountType })
-        : await register(f);
+        : await register({ ...f, accountType });
       nav(user.isAdmin ? '/admin' : '/');
     } catch (err) {
       setError(err.message);
@@ -30,8 +30,9 @@ export default function Login() {
 
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
+    setAccountType('user');
     setError('');
-    setF({ name: '', email: '', password: '' });
+    setF({ name: '', email: '', password: '', adminRegistrationKey: '' });
   };
 
   return (
@@ -50,18 +51,33 @@ export default function Login() {
 
         {/* Form */}
         <form id="auth-form" className="auth-form" onSubmit={submit} noValidate>
-          {mode === 'login' && (
+          <div className="input-group">
+            <label className="input-label" htmlFor="account-type">
+              {mode === 'login' ? 'Sign in as' : 'Create account as'}
+            </label>
+            <select
+              id="account-type"
+              className="input-field"
+              value={accountType}
+              onChange={(e) => setAccountType(e.target.value)}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          {mode === 'register' && accountType === 'admin' && (
             <div className="input-group">
-              <label className="input-label" htmlFor="account-type">Sign in as</label>
-              <select
-                id="account-type"
+              <label className="input-label" htmlFor="admin-registration-key">Admin registration key</label>
+              <input
+                id="admin-registration-key"
                 className="input-field"
-                value={accountType}
-                onChange={(e) => setAccountType(e.target.value)}
-              >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
+                required
+                type="password"
+                value={f.adminRegistrationKey}
+                onChange={on('adminRegistrationKey')}
+                autoComplete="off"
+              />
             </div>
           )}
 

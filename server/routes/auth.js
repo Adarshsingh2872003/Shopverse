@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
@@ -10,10 +11,28 @@ const sign = (u) => ({
 });
 
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, adminRegistrationKey } = req.body;
+  const accountType = req.body.accountType || 'user';
+  if (!['user', 'admin'].includes(accountType))
+    return res.status(400).json({ message: 'Choose a valid account type.' });
   if (!name || !email || !password) return res.status(400).json({ message: 'Fill in name, email and password.' });
+  if (accountType === 'admin') {
+    const configuredKey = process.env.ADMIN_REGISTRATION_KEY || '';
+    const providedKey = typeof adminRegistrationKey === 'string' ? adminRegistrationKey : '';
+    const configuredBuffer = Buffer.from(configuredKey);
+    const providedBuffer = Buffer.from(providedKey);
+    if (!configuredKey)
+      return res.status(503).json({ message: 'Admin registration is not configured. Contact the store administrator.' });
+    if (configuredBuffer.length !== providedBuffer.length || !timingSafeEqual(configuredBuffer, providedBuffer))
+      return res.status(403).json({ message: 'Admin registration key is incorrect.' });
+  }
   if (await User.findOne({ email })) return res.status(409).json({ message: 'That email is already registered.' });
-  res.status(201).json(sign(await User.create({ name, email, password })));
+  res.status(201).json(sign(await User.create({
+    name,
+    email,
+    password,
+    isAdmin: accountType === 'admin',
+  })));
 });
 
 router.post('/login', async (req, res) => {
